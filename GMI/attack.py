@@ -128,9 +128,9 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
 if __name__ == '__main__':
     parser = ArgumentParser(description='Step2: targeted recovery')
     parser.add_argument('--dataset', default='celeba', help='celeba | cxr | mnist')
-    parser.add_argument('--defense', default='reg', help='reg | vib | HSIC')
+    parser.add_argument('--defense', default='HSIC', help='reg | vib | HSIC')
     parser.add_argument('--save_img_dir', default='./attack_res/')
-    parser.add_argument('--success_dir', default='')
+    parser.add_argument('--success_dir', default='./attack_success')
     parser.add_argument('--model_path', default='../BiDO/target_model')
     parser.add_argument('--verbose', action='store_true', help='')
     parser.add_argument('--iter', default=3000, type=int)
@@ -151,19 +151,20 @@ if __name__ == '__main__':
         model_name = "VGG16"
         num_classes = 1000
 
-        e_path = os.path.join(eval_path, "FaceNet_95.88.tar")
-        E = model.FaceNet(num_classes)
-        E = nn.DataParallel(E).cuda()
-        ckp_E = torch.load(e_path)
-        E.load_state_dict(ckp_E['state_dict'], strict=False)
+        #e_path = os.path.join(eval_path, "FaceNet_95.88.tar")
+        #E = model.FaceNet(num_classes)
+        #E = nn.DataParallel(E).cuda()
+        #ckp_E = torch.load(e_path)
+        #E.load_state_dict(ckp_E['state_dict'], strict=False)
+        E=T
 
-        g_path = "./result/models_celeba_gan/celeba_G_300.tar"
+        g_path = "/workspace/data/celeba_G.tar"
         G = generator.Generator()
         G = nn.DataParallel(G).cuda()
         ckp_G = torch.load(g_path)
         G.load_state_dict(ckp_G['state_dict'], strict=False)
 
-        d_path = "./result/models_celeba_gan/celeba_D_300.tar"
+        d_path = "/workspace/data/celeba_D.tar"
         D = discri.DGWGAN()
         D = nn.DataParallel(D).cuda()
         ckp_D = torch.load(d_path)
@@ -171,6 +172,7 @@ if __name__ == '__main__':
 
         if args.defense == 'HSIC' or args.defense == 'COCO':
             hp_ac_list = [
+                (0.0,0.0,80.19)
                 # HSIC
                 # 1
                 # (0.05, 0.5, 80.35),
