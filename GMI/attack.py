@@ -71,7 +71,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
                     fake_img = G(z.detach())
 
                     if args.dataset == 'celeba':
-                        eval_prob = E(utils.low2high(fake_img))[-1]
+                        eval_prob = E(fake_img)[-1]
                     else:
                         eval_prob = E(fake_img)[-1]
 
@@ -84,7 +84,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
 
         fake = G(z)
         if args.dataset == 'celeba':
-            eval_prob = E(utils.low2high(fake))[-1]
+            eval_prob = E(fake)[-1]
         else:
             eval_prob = E(fake)[-1]
 
