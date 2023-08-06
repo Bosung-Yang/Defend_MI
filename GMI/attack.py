@@ -156,7 +156,7 @@ if __name__ == '__main__':
         #E = nn.DataParallel(E).cuda()
         #ckp_E = torch.load(e_path)
         #E.load_state_dict(ckp_E['state_dict'], strict=False)
-        E=T
+        
 
         g_path = "/workspace/data/celeba_G.tar"
         G = generator.Generator()
@@ -195,6 +195,7 @@ if __name__ == '__main__':
 
                 ckp_T = torch.load(path_T)
                 T.load_state_dict(ckp_T['state_dict'], strict=False)
+                E=T
 
                 res_all = []
                 ids = 300
