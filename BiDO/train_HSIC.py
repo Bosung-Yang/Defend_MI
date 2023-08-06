@@ -129,8 +129,30 @@ if __name__ == '__main__':
     train_file = loaded_args['dataset']['train_file']
     test_file = loaded_args['dataset']['test_file']
 
-    trainloader = utils.init_dataloader(loaded_args, train_file, mode="train")
-    testloader = utils.init_dataloader(loaded_args, test_file, mode="test")
+    data_path = '/workspace/data/data/'
+    batch_size = 64
+    train_folder = 'train/'
+    test_folder = 'test/'
+    image_transforms = {
+        'train': transforms.Compose([
+            transforms.CenterCrop((128,128)),
+            transforms.Resize(64),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5])
+        ]),
+        'test': transforms.Compose([
+            transforms.CenterCrop((128,128)),
+            transforms.Resize(64),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5])
+        ])
+    }
+    train_images = datasets.ImageFolder(data_path+train_folder,image_transforms['train'])
+    train_loader = torch.utils.data.DataLoader(train_images, batch_size = 64 ,num_workers=4,shuffle=True)
+    test_images = datasets.ImageFolder(data_path+test_folder,image_transforms['test'])
+    test_loader = torch.utils.data.DataLoader(test_images, batch_size = 64 ,num_workers=4,shuffle=True) 
+ 
+
 
     main(args, loaded_args, trainloader, testloader)
 
