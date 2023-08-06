@@ -5,6 +5,8 @@ from copy import deepcopy
 import numpy as np
 import collections
 
+from torchvision import transforms, datasets
+
 import model
 from util import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
 
@@ -64,7 +66,7 @@ def main(args, loaded_args, trainloader, testloader):
 
             load_pretrained_feature_extractor = True
             if load_pretrained_feature_extractor:
-                pretrained_model_ckpt = "target_model/vgg16_bn-6c64b313.pth"
+                pretrained_model_ckpt = "/workspace/data/vgg.pth"
                 checkpoint = torch.load(pretrained_model_ckpt)
                 load_feature_extractor(net, checkpoint)
 
@@ -129,7 +131,7 @@ if __name__ == '__main__':
     train_file = loaded_args['dataset']['train_file']
     test_file = loaded_args['dataset']['test_file']
 
-    data_path = '/workspace/data/data/'
+    data_path = '/workspace/data/'
     batch_size = 64
     train_folder = 'train/'
     test_folder = 'test/'
@@ -154,5 +156,5 @@ if __name__ == '__main__':
  
 
 
-    main(args, loaded_args, trainloader, testloader)
+    main(args, loaded_args, train_loader, test_loader)
 
