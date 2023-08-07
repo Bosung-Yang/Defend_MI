@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import MultiStepLR
 from util import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
 from copy import deepcopy
-
+from torchvision import transforms, datasets
 device = "cuda"
 
 
@@ -89,14 +89,33 @@ if __name__ == '__main__':
     # l = [0.001, 0.005, 0.01, 0.02, 0.05]
     # l = [0.015]
     args[model_name]["batch_size"] = 64
+    data_path = '/workspace/data/'
+    batch_size = 64
+    train_folder = 'train/'
+    test_folder = 'test/'
+    image_transforms = {
+        'train': transforms.Compose([
+            transforms.CenterCrop((128,128)),
+            transforms.Resize(64),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5])
+        ]),
+        'test': transforms.Compose([
+            transforms.CenterCrop((128,128)),
+            transforms.Resize(64),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5])
+        ])
+    }
     # l = [0.16, 0.17, 0.18, 0.19, 0.21, 0.22, 0.23, 0.24, 0.25]
     l = [0.1]
     print('beta in ', l)
     for beta in l:
         print('beta =', beta)
-        train_file = args['dataset']['train_file']
-        test_file = args['dataset']['test_file']
-        trainloader = utils.init_dataloader(args, train_file, mode="train")
-        testloader = utils.init_dataloader(args, test_file, mode="test")
+        train_images = datasets.ImageFolder(data_path+train_folder,image_transforms['train'])
+        train_loader = torch.utils.data.DataLoader(train_images, batch_size = 64 ,num_workers=4,shuffle=True)
+        test_images = datasets.ImageFolder(data_path+test_folder,image_transforms['test'])
+        test_loader = torch.utils.data.DataLoader(test_images, batch_size = 64 ,num_workers=4,shuffle=True) 
+    
 
-        main(args, trainloader, testloader)
+        main(args, train_loader, test_loader)
