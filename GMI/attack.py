@@ -70,7 +70,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
                 if (i + 1) % 500 == 0:
                     fake_img = G(z.detach())
 
-                    if args.dataset == 'celeba':
+                    if args.dataset == 'tceleba':
                         eval_prob = E(utils.low2high(fake_img))[-1]
                     else:
                         eval_prob = E(fake_img)[-1]
@@ -83,7 +83,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
                                                                                                         acc))
 
         fake = G(z)
-        if args.dataset == 'celeba':
+        if args.dataset == 'tceleba':
             eval_prob = E(utils.low2high(fake))[-1]
         else:
             eval_prob = E(fake)[-1]
@@ -128,7 +128,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
 if __name__ == '__main__':
     parser = ArgumentParser(description='Step2: targeted recovery')
     parser.add_argument('--dataset', default='celeba', help='celeba | cxr | mnist')
-    parser.add_argument('--defense', default='vib', help='reg | vib | HSIC')
+    parser.add_argument('--defense', default='HSIC', help='reg | vib | HSIC')
     parser.add_argument('--save_img_dir', default='./attack_res/')
     parser.add_argument('--success_dir', default='./attack_success')
     parser.add_argument('--model_path', default='/workspace/data/')
@@ -151,11 +151,12 @@ if __name__ == '__main__':
         model_name = "VGG16"
         num_classes = 1000
 
-        e_path = os.path.join('/workspace/data/', "FaceNet_95.88.tar")
-        E = model.FaceNet(num_classes)
-        E = nn.DataParallel(E).cuda()
+        e_path = os.path.join('/workspace/data/', "vgg.pth")
+        E = model.VGG16(num_classes)
+        #E = nn.DataParallel(E).cuda()
         ckp_E = torch.load(e_path)
-        E.load_state_dict(ckp_E['state_dict'], strict=False)
+        E.load_state_dict(ckp_E, strict=False)
+        E = E.cuda()
         
 
         g_path = "/workspace/data/celeba_G.tar"
@@ -209,10 +210,10 @@ if __name__ == '__main__':
                     iden = iden + ids_per_time
 
                 res = np.array(res_all).mean(0)
-                fid_value = calculate_fid_given_paths(args.dataset,
-                                                      [f'attack_res/{args.dataset}/trainset/',
-                                                       f'attack_res/{args.dataset}/{args.defense}/all/'],
-                                                      50, 1, 2048)
+                #fid_value = calculate_fid_given_paths(args.dataset,
+                #                                      [f'attack_res/{args.dataset}/trainset/',
+                #                                       f'attack_res/{args.dataset}/{args.defense}/all/'],
+                #                                      50, 1, 2048)
                 print(f"Acc:{res[0]:.4f} (+/- {res[2]:.4f}), Acc5:{res[1]:.4f} (+/- {res[3]:.4f})")
                 print(f'FID:{fid_value:.4f}')
 
