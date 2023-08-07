@@ -16,7 +16,7 @@ from utils import save_tensor_images
 
 
 def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_times=1500,
-              clip_range=1, num_seeds=5, verbose=False):
+              clip_range=1, num_seeds=2, verbose=False):
     iden = iden.view(-1).long().cuda()
     criterion = nn.CrossEntropyLoss().cuda()
     bs = iden.shape[0]
@@ -71,7 +71,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
                     fake_img = G(z.detach())
 
                     if args.dataset == 'celeba':
-                        eval_prob = E(fake_img)[-1]
+                        eval_prob = E(utils.low2high(fake_img))[-1]
                     else:
                         eval_prob = E(fake_img)[-1]
 
@@ -84,7 +84,7 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
 
         fake = G(z)
         if args.dataset == 'celeba':
-            eval_prob = E(fake)[-1]
+            eval_prob = E(utils.low2high(fake))[-1]
         else:
             eval_prob = E(fake)[-1]
 
@@ -128,10 +128,10 @@ def inversion(args, G, D, T, E, iden, lr=2e-2, momentum=0.9, lamda=100, iter_tim
 if __name__ == '__main__':
     parser = ArgumentParser(description='Step2: targeted recovery')
     parser.add_argument('--dataset', default='celeba', help='celeba | cxr | mnist')
-    parser.add_argument('--defense', default='HSIC', help='reg | vib | HSIC')
+    parser.add_argument('--defense', default='vib', help='reg | vib | HSIC')
     parser.add_argument('--save_img_dir', default='./attack_res/')
     parser.add_argument('--success_dir', default='./attack_success')
-    parser.add_argument('--model_path', default='../BiDO/target_model')
+    parser.add_argument('--model_path', default='/workspace/data/')
     parser.add_argument('--verbose', action='store_true', help='')
     parser.add_argument('--iter', default=3000, type=int)
 
@@ -151,11 +151,11 @@ if __name__ == '__main__':
         model_name = "VGG16"
         num_classes = 1000
 
-        #e_path = os.path.join(eval_path, "FaceNet_95.88.tar")
-        #E = model.FaceNet(num_classes)
-        #E = nn.DataParallel(E).cuda()
-        #ckp_E = torch.load(e_path)
-        #E.load_state_dict(ckp_E['state_dict'], strict=False)
+        e_path = os.path.join('/workspace/data/', "FaceNet_95.88.tar")
+        E = model.FaceNet(num_classes)
+        E = nn.DataParallel(E).cuda()
+        ckp_E = torch.load(e_path)
+        E.load_state_dict(ckp_E['state_dict'], strict=False)
         
 
         g_path = "/workspace/data/celeba_G.tar"
@@ -219,9 +219,9 @@ if __name__ == '__main__':
         else:
             if args.defense == "vib":
                 path_T_list = [
-                    os.path.join(args.model_path, args.dataset, args.defense, "VGG16_beta0.003_77.59.tar"),
-                    os.path.join(args.model_path, args.dataset, args.defense, "VGG16_beta0.010_67.72.tar"),
-                    os.path.join(args.model_path, args.dataset, args.defense, "VGG16_beta0.020_59.24.tar"),
+                    os.path.join(args.model_path, args.dataset, args.defense, "VGG16_vib_beta0.010_61.55.tar")#,
+                    #os.path.join(args.model_path, args.dataset, args.defense, "VGG16_beta0.010_67.72.tar"),
+                    #os.path.join(args.model_path, args.dataset, args.defense, "VGG16_beta0.020_59.24.tar"),
                 ]
                 for path_T in path_T_list:
                     T = model.VGG16_vib(num_classes)
@@ -230,7 +230,6 @@ if __name__ == '__main__':
                     checkpoint = torch.load(path_T)
                     ckp_T = torch.load(path_T)
                     T.load_state_dict(ckp_T['state_dict'])
-
                     res_all = []
                     ids = 300
                     times = 5
@@ -243,10 +242,10 @@ if __name__ == '__main__':
                         iden = iden + ids_per_time
 
                     res = np.array(res_all).mean(0)
-                    fid_value = calculate_fid_given_paths(args.dataset,
-                                                          [f'attack_res/{args.dataset}/trainset/',
-                                                           f'attack_res/{args.dataset}/{args.defense}/all/'],
-                                                          50, 1, 2048)
+                    #fid_value = calculate_fid_given_paths(args.dataset,
+                    #                                      [f'attack_res/{args.dataset}/trainset/',
+                    #                                       f'attack_res/{args.dataset}/{args.defense}/all/'],
+                    #                                      50, 1, 2048)
                     print(f"Acc:{res[0]:.4f} (+/- {res[2]:.4f}), Acc5:{res[1]:.4f} (+/- {res[3]:.4f})")
                     print(f'FID:{fid_value:.4f}')
 

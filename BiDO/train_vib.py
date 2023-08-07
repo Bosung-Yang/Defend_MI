@@ -108,7 +108,7 @@ if __name__ == '__main__':
         ])
     }
     # l = [0.16, 0.17, 0.18, 0.19, 0.21, 0.22, 0.23, 0.24, 0.25]
-    l = [0.1]
+    l = [0.2]
     print('beta in ', l)
     for beta in l:
         print('beta =', beta)
